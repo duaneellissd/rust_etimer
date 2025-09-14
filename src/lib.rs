@@ -1,21 +1,20 @@
 use core;
+use std::mem;
 // cspell: words libc etimer, highres, 
 // cspell: words getnow, timeval, gettimeofday
-use libc::timeval;
-use libc::gettimeofday;
+extern crate libc;
 
 static mut TIME_ZERO : u64 = 0;
 
 /// time_zero is when the application started
 /// This returns the number of microseconds since start
 pub fn etimer_highres_getnow() -> u64 {
-    let mut tv : libc::timeval;
+    let mut answer;
     unsafe {
-        libc::gettimeofday( &tv, core::ptr::null_mut() );
-    }
-    let mut answer : u64 = tv.tv_sec.wrapping_mul( 1000000 );
-    answer = answer.wrapping_add( tv.tv_usec );
-    unsafe {
+        let mut tv : libc::timeval = mem::zeroed();
+        libc::gettimeofday( &mut tv, core::ptr::null_mut() );
+        answer = tv.tv_sec.wrapping_mul( 1000000 ) as u64;
+        answer = answer.wrapping_add( tv.tv_usec as u64 );
         if TIME_ZERO == 0 {
             TIME_ZERO = answer
         }
